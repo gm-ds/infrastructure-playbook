@@ -1,14 +1,15 @@
 # Cloud
-[grafana]
-stats.galaxyproject.eu
 
 [build]
 build.galaxyproject.eu ansible_ssh_user=root
 
-[influxdb]
-influxdb.galaxyproject.eu
-
 ##########################IT###########################
+
+[influxdb]
+influxdb.usegalaxy.it
+
+[grafana]
+stats.usegalaxy.it
 
 ### ReCaS
 

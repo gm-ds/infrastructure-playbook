@@ -1,0 +1,6 @@
+---
+vault_grafana_database_password:
+vault_grafana_database_user:
+vault_grafana_database_name:
+vault_grafana_security_secret_key:
+vault_grafana_auth_admin_password:
