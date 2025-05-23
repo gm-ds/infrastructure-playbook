@@ -86,8 +86,10 @@
       vars:
         hostname: "{{ grafana_domain }}"
     - grafana
-    - role: pgs
-      become: true
+    # Disabling public galaxy server for the time being
+    # more info: https://github.com/martenson/public-galaxy-servers/
+    # - role: pgs
+    #   become: true
     - role: geerlingguy.docker
       become: true
       vars:
