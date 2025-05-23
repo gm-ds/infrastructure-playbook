@@ -1,4 +1,18 @@
 ---
+# Postgres
+postgresql_version: 13
+postgresql_objects_users:
+  - name: "{{ vault_grafana_database_name }}"
+    password: "{{ vault_grafana_database_password }}"
+
+postgresql_objects_databases:
+  - name: "{{ vault_grafana_database_name }}"
+    owner:: "{{ vault_grafana_database_user }}"
+postgresql_conf:
+  - listen_addresses: "'*'" # "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
+postgresql_pg_hba_conf:
+  - host     all     all     {{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}/24     md5
+
 # Certbot
 certbot_auth_method: --webroot
 certbot_well_known_root: /srv/nginx/_well-known_root
@@ -9,7 +23,7 @@ certbot_post_renewal: |
     systemctl restart nginx || true
 certbot_domains:
   - "{{ grafana_domain }}"
-  - "{{ grafana_on_call_domain }}"
+#  - "{{ grafana_on_call_domain }}"
 #hostname: "{{ grafana_domain }}"
 # NGINX
 nginx_enable_default_server: false
@@ -37,19 +51,20 @@ nginx_conf_ssl_certificate: /etc/ssl/certs/fullchain.pem
 nginx_conf_ssl_certificate_key: /etc/ssl/user/privkey-nginx.pem
 
 #setting this to false will remove the on call compose services and it's compose directory
-grafana_on_call: true
-grafana_on_call_domain: oncall.galaxyproject.it # TODO
+grafana_on_call: false # in the future
+grafana_on_call_domain:
 grafana_on_call_path: /data/grafana-on-call
 # Grafana
 grafana_version: "11.4.0"
 
 grafana_address: "127.0.0.1"
-grafana_domain: stats.usegalaxy.it
+grafana_domain: "stats.usegalaxy.it"
 grafana_url: "https://{{ grafana_domain }}"
 
 grafana_users:
   default_theme: "light"
 
+# Used by grafana.grafana collection role
 grafana_security:
   admin_user: admin
   admin_password: "{{ vault_grafana_auth_admin_password }}"
@@ -57,13 +72,17 @@ grafana_security:
   cookie_secure: "true"
 grafana_security_secret_key: "{{ vault_grafana_security_secret_key }}"
 
+# Used by grafana.grafana collection role
+# Grafana needs a database to store users and dashboards (and other things).
 grafana_database:
   type: postgres
-  host: # TODO
+  host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:5432"
   name: "{{ vault_grafana_database_name }}"
   user: "{{ vault_grafana_database_user }}"
   password: "{{ vault_grafana_database_password }}"
 
+# Used by grafana.grafana collection role
+# Grafana auth methods
 grafana_auth:
   anonymous:
     enabled: "true"
@@ -76,6 +95,8 @@ grafana_auth:
     client_id: "{{ vault_grafana_auth__github_client_id }}"
     client_secret: "{{ vault_grafana_auth__github_client_secret }}"
     scopes: "user:email,read:org"
+    # See for more infos
+    # https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/github/
     auth_url: "https://github.com/login/oauth/authorize"
     token_url: "https://github.com/login/oauth/access_token"
     api_url: "https://api.github.com/user"
@@ -116,6 +137,7 @@ grafana_plugins:
 
 grafana_dashboards_dir: "files/grafana"
 
+# TODO: (maybe) check the uid
 grafana_datasources:
   - name: Galaxy
     type: influxdb
@@ -167,7 +189,7 @@ grafana_datasources:
     database: notifications
     user: "{{ influxdb.grafana.username }}"
     password: "{{ influxdb.grafana.password }}"
-    uid: P788011833A5A0F22 # TODO
+    uid: P788011833A5A0F22
 
 # hxr_monitor_ssl_expiry:
 #   # A couple of usegalaxy.eu subdomains.
@@ -183,7 +205,7 @@ grafana_datasources:
 #   - galaxyproject.org:443
 #   - usegalaxy.org:443
 
-
+# TODO
 # telegraf_plugins_extra:
 #   github:
 #     plugin: github

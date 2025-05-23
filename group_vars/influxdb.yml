@@ -1,6 +1,6 @@
 ---
 docker_users:
-  - centos
+  - rocky
 # influxdb
 influxdb_https_enabled: "true"
 
@@ -47,7 +47,7 @@ handy_users:
     user_group: influxdb
 
 # Certbot
-certbot_admin_email: example@mail.example.org
+certbot_admin_email: usegalaxy.it@gmail.it
 certbot_agree_tos: --agree-tos
 certbot_auth_method: --webroot
 certbot_auto_renew: true
