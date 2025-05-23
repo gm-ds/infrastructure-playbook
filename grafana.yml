@@ -3,7 +3,6 @@
   hosts: grafana
   vars_files:
     - secret_group_vars/all.yml
-    - secret_group_vars/grafana.yml
   pre_tasks:
     #- name: Put SELinux in permissive mode, logging actions that would be blocked.
     #  # Putting SELinux in permissive mode should not be necessary. But if
@@ -19,7 +18,7 @@
     - name: Install Dependencies
       become: true
       ansible.builtin.package:
-        name: ["python3-virtualenv", "python3-docker", "python3-pip"]
+        name: ["acl", "python3-virtualenv", "python3-docker", "python3-pip"]
     - name: Install docker compose python (no rpm available)
       ansible.builtin.pip:
         name: docker-compose
@@ -76,6 +75,12 @@
     #   become: true
 
     ## Grafana
+    - galaxyproject.postgresql
+
+    - role: galaxyproject.postgresql_objects
+      become: true
+      become_user: postgres
+
     - role: galaxyproject.nginx
       become: true
       vars:

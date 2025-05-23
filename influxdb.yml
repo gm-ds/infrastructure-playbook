@@ -11,6 +11,23 @@
       become: true
       ansible.builtin.package:
         name: ['python3-virtualenv', 'python3-docker']
+    - name: Create data dir
+      ansible.builtin.file:
+        state: directory
+        path: /data
+      become: true
+    - name: Create FS
+      community.general.filesystem:
+        fstype: xfs
+        dev: /dev/vdb
+      become: true
+    - name: Mount data volume
+      ansible.posix.mount:
+        path: /data
+        src: /dev/vdb
+        fstype: xfs
+        state: mounted
+      become: true
     - name: Configure SELinux
       ansible.posix.seboolean:
         name: "{{ item }}"
@@ -32,6 +49,7 @@
         owner: root
         group: root
       notify: copied_service
+
   handlers:
     - name: Reload Firewalld
       listen: copied_service
