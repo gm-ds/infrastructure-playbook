@@ -1,16 +1,27 @@
 ---
 - hosts: influxdb
-  name: InfluxDB
   become: true
   vars:
-    hostname: influxdb.usegalaxy.it
+    hostname: "{{ groups['influxdb'][0] }}"
   vars_files:
     - "secret_group_vars/all.yml"
   pre_tasks:
+    - name: Enable EPEL
+      ansible.builtin.dnf:
+        name: epel-release
+        state: present
+    - name: Ensure dnf-plugins-core is installed
+      ansible.builtin.package:
+        name: dnf-plugins-core
+        state: present
+
+    - name: Enable CRB (CodeReady Builder) on Rocky
+      ansible.builtin.command: dnf config-manager --set-enabled crb
+      when: ansible_distribution == "Rocky"
     - name: Install Dependencies
       become: true
       ansible.builtin.package:
-        name: ['python3-virtualenv', 'python3-docker']
+        name: ['python3-virtualenv', 'python3-docker', 'perl', 'firewalld']
     - name: Create data dir
       ansible.builtin.file:
         state: directory
@@ -18,14 +29,14 @@
       become: true
     - name: Create FS
       community.general.filesystem:
-        fstype: xfs
+        fstype: ext4
         dev: /dev/vdb
       become: true
     - name: Mount data volume
       ansible.posix.mount:
         path: /data
         src: /dev/vdb
-        fstype: xfs
+        fstype: ext4
         state: mounted
       become: true
     - name: Configure SELinux
@@ -35,6 +46,13 @@
         persistent: true
       loop:
         - httpd_can_network_connect
+    - name: Ensure /etc/firewalld/services exists
+      ansible.builtin.file:
+        path: /etc/firewalld/services
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
     - name: Create influxdb firewalld service
       ansible.builtin.copy:
         dest: /etc/firewalld/services/influxdb.xml
@@ -56,14 +74,17 @@
       ansible.builtin.service:
         name: firewalld
         state: reloaded
+
   collections:
     - devsec.hardening
+
   roles:
     ## Starting configuration of the operating system
     # - role: usegalaxy_eu.firewall
     #   become: true
     - role: usegalaxy_eu.handy.os_setup
       vars:
+        hostname: "usegalaxy-it-influxdb"
         enable_hostname: true
         enable_powertools: true        # geerlingguy.repo-epel role doesn't enable PowerTools repository
         enable_remap_user: true
@@ -76,7 +97,9 @@
 #    # Applications
     - geerlingguy.docker
     - galaxyproject.nginx
-    - usegalaxy_eu.influxdbserver
+    - role: usegalaxy_eu.influxdbserver
+      vars:
+        hostname: "{{ influxdb.url }}"
     - dj-wasabi.telegraf
     # hardening
     - os_hardening

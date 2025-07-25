@@ -1,6 +1,7 @@
 ---
 # Postgres
 postgresql_version: 13
+postgresql_pgdata: /data/postgresql
 postgresql_objects_users:
   - name: "{{ vault_grafana_database_name }}"
     password: "{{ vault_grafana_database_password }}"
@@ -24,6 +25,7 @@ certbot_post_renewal: |
 certbot_domains:
   - "{{ grafana_domain }}"
 #  - "{{ grafana_on_call_domain }}"
+certbot_environment: "production"  
 #hostname: "{{ grafana_domain }}"
 # NGINX
 nginx_enable_default_server: false
@@ -53,30 +55,29 @@ nginx_conf_ssl_certificate_key: /etc/ssl/user/privkey-nginx.pem
 #setting this to false will remove the on call compose services and it's compose directory
 grafana_on_call: false # in the future
 grafana_on_call_domain:
-grafana_on_call_path: /data/grafana-on-call
+grafana_on_call_path: /data/monitoring/grafana/grafana-on-call
 # Grafana
 grafana_version: "11.4.0"
 
 grafana_address: "127.0.0.1"
-grafana_domain: "stats.usegalaxy.it"
+grafana_domain: "212.189.205.240.cloud.ba.infn.it"
 grafana_url: "https://{{ grafana_domain }}"
-
 grafana_users:
   default_theme: "light"
 
 # Used by grafana.grafana collection role
 grafana_security:
-  admin_user: admin
+  admin_user: "{{ vault_grafana_admin_user }}"
   admin_password: "{{ vault_grafana_auth_admin_password }}"
   allow_embedding: "true"
   cookie_secure: "true"
 grafana_security_secret_key: "{{ vault_grafana_security_secret_key }}"
 
 # Used by grafana.grafana collection role
-# Grafana needs a database to store users and dashboards (and other things).
+# Grafana needs a database to store uorgsers and dashboards (and other things).
 grafana_database:
   type: postgres
-  host: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}:5432"
+  host: 127.0.0.1:5432
   name: "{{ vault_grafana_database_name }}"
   user: "{{ vault_grafana_database_user }}"
   password: "{{ vault_grafana_database_password }}"
@@ -100,8 +101,8 @@ grafana_auth:
     auth_url: "https://github.com/login/oauth/authorize"
     token_url: "https://github.com/login/oauth/access_token"
     api_url: "https://api.github.com/user"
-    allowed_organisations: "usegalaxy.it"
-    role_attribute_path: contains(groups[*], '@usegalaxy-it/admingrafana') && 'GrafanaAdmin' || 'Viewer'
+    allowed_organisations: "usegalaxy-it"
+    role_attribute_path: contains(groups[*], '@usegalaxy-it/admingrafana') && 'Admin' || 'Viewer'
 grafana_auth_admin_password: "{{ vault_grafana_auth_admin_password }}"
 
 grafana_image_storage:
@@ -135,61 +136,61 @@ grafana_plugins:
   - grafana-piechart-panel
   - natel-discrete-panel
 
-grafana_dashboards_dir: "files/grafana"
+grafana_dashboards_dir: "/data/monitoring/grafana/files/"
 
 # TODO: (maybe) check the uid
-grafana_datasources:
+ext_grafana_datasources:
   - name: Galaxy
     type: influxdb
     access: proxy
-    url: "{{ influxdb.url }}"
+    url: "https://{{ influxdb.url }}"
     isDefault: true
     version: 1
-    editable: false
+    editable: true
     database: galaxy
     user: "{{ influxdb.grafana.username }}"
-    password: "{{ influxdb.grafana.password }}"
     uid: P9B81C0353945995B
+    password: "{{ influxdb.grafana.password }}"
   - name: Galaxy Historical
     type: influxdb
     access: proxy
-    url: "{{ influxdb.url }}"
+    url: "https://{{ influxdb.url }}"
     version: 1
-    editable: false
+    editable: true
     database: galaxy_stats
     user: "{{ influxdb.grafana.username }}"
-    password: "{{ influxdb.grafana.password }}"
     uid: PEBD82B4560F292BD
+    password: "{{ influxdb.grafana.password }}"
   - name: GRT Tool Usage
     type: influxdb
     access: proxy
-    url: "{{ influxdb.url }}"
+    url: "https://{{ influxdb.url }}"
     version: 1
-    editable: false
+    editable: true
     database: grt
     user: "{{ influxdb.grafana.username }}"
-    password: "{{ influxdb.grafana.password }}"
     uid: PA4245ACF5D5D4D2B
+    password: "{{ influxdb.grafana.password }}"
   - name: InfluxDB - internal
     type: influxdb
     access: proxy
-    url: "{{ influxdb.url }}"
+    url: "https://{{ influxdb.url }}"
     version: 1
-    editable: false
+    editable: true
     database: _internal
     user: "{{ influxdb.grafana.username }}"
-    password: "{{ influxdb.grafana.password }}"
     uid: P97EDD1499B7D2981
+    password: "{{ influxdb.grafana.password }}"
   - name: Notifications
     type: influxdb
     access: proxy
-    url: "{{ influxdb.url }}"
+    url: "https://{{ influxdb.url }}"
     version: 1
-    editable: false
+    editable: true
     database: notifications
     user: "{{ influxdb.grafana.username }}"
-    password: "{{ influxdb.grafana.password }}"
     uid: P788011833A5A0F22
+    password: "{{ influxdb.grafana.password }}"
 
 # hxr_monitor_ssl_expiry:
 #   # A couple of usegalaxy.eu subdomains.

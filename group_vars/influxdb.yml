@@ -1,6 +1,6 @@
 ---
 docker_users:
-  - rocky
+  - "{{ ansible_ssh_user }}"
 # influxdb
 influxdb_https_enabled: "true"
 
@@ -11,6 +11,13 @@ influxdb_users:
     - {username: "{{ influxdb.grafana.username }}", password: "{{ influxdb.grafana.password }}"}
     - {username: "{{ influxdb.node.username }}", password: "{{ influxdb.node.password }}"}
 influxdb_data_dir: /data/monitoring/influxdb_data # TODO
+
+influxdb_databases:
+  - galaxy
+  - grt
+  - galaxy_stats
+  - notifications
+
 
 influxdb_container_standalone_setup_details:
   volumes:
