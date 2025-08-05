@@ -256,7 +256,7 @@
     # - usegalaxy-eu.fix-stop-ITs # remove IT jobs after 24h from queue 
 
     # Some of our 'cleanups' also generate telegraf format so this goes at end.
-    - dj-wasabi.telegraf
+    # - dj-wasabi.telegraf
     # - os_hardening    
     # - ssh_hardening   # !!! CHECK ADD
     # - usegalaxy-eu.vgcn-monitoring
