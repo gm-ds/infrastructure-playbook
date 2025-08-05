@@ -17,6 +17,7 @@ influxdb_databases:
   - grt
   - galaxy_stats
   - notifications
+# TODO: Rework of the databases needed and their organization
 
 
 influxdb_container_standalone_setup_details:
