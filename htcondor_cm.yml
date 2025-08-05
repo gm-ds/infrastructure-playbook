@@ -100,6 +100,7 @@
     - usegalaxy-eu.autofs
     - usegalaxy-eu.ansible-htcondor-grycap
     - galaxyproject.cvmfs
+    - dj-wasabi.telegraf
     - ssh_hardening
 
   post_tasks:
